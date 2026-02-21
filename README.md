@@ -1,4 +1,4 @@
-# claude-code-memos-plugin
+# claude-code-memdb-plugin
 
 Claude Code plugin for MemDB memory integration — automatic context injection and conversation persistence.
 
@@ -6,23 +6,25 @@ Claude Code plugin for MemDB memory integration — automatic context injection 
 
 ```bash
 # Install the plugin
-claude plugins install /path/to/claude-code-memos-plugin
+claude plugins install /path/to/claude-code-memdb-plugin
 
 # Run interactive setup
-bash "$(claude plugins dir)/memos-memory/setup.sh"
+bash "$(claude plugins dir)/memdb-memory/setup.sh"
 ```
 
 The setup script will prompt for your MemDB connection details, test connectivity, and save the config.
 
 ## What it does
 
-**Three hooks** that make Claude Code sessions memory-aware:
+**Four hooks** that make Claude Code sessions memory-aware:
 
-1. **`memos-healthcheck`** (SessionStart) — On session start, checks if MemDB is reachable and shows connection status. Warns if MemDB is down so you know memory features are disabled.
+1. **`memdb-healthcheck`** (SessionStart) — On session start, checks if MemDB is reachable and shows connection status. Warns if MemDB is down so you know memory features are disabled.
 
-2. **`memos-inject`** (UserPromptSubmit) — Before each prompt, searches MemDB for relevant memories, reranks via LLM to filter noise, and injects the top results as context. Claude sees relevant past decisions, preferences, and project knowledge automatically.
+2. **`memdb-inject`** (UserPromptSubmit) — Before each prompt, searches MemDB for relevant memories and injects the top results as context. Claude sees relevant past decisions, preferences, and project knowledge automatically.
 
-3. **`memos-precompact`** (PreCompact) — Before Claude Code compacts context, reads the conversation transcript, extracts key facts/decisions via LLM summarization, and saves them to MemDB. Important context survives across sessions.
+3. **`memdb-precompact`** (PreCompact) — Before Claude Code compacts context, reads the conversation transcript and sends messages to MemDB for extraction and structuring. Important context survives across sessions.
+
+4. **`memdb-stop`** (Stop) — After meaningful turns, sends transcript delta to MemDB for incremental memory extraction.
 
 **One command:**
 
@@ -42,7 +44,7 @@ Run the interactive setup script:
 bash setup.sh
 ```
 
-This creates `~/.config/claude-code-memos/config.env` with your settings.
+This creates `~/.config/claude-code-memdb/config.env` with your settings.
 
 ### Option 2: Environment variables
 
@@ -50,20 +52,20 @@ Set these before starting Claude Code:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MEMOS_API_URL` | `http://127.0.0.1:8000` | MemDB API endpoint |
-| `MEMOS_USER_ID` | `default` | User identifier |
-| `MEMOS_CUBE_ID` | `memos` | Memory cube identifier |
+| `MEMDB_API_URL` | `http://127.0.0.1:8080` | MemDB API endpoint |
+| `MEMDB_USER_ID` | `memos` | User identifier |
+| `MEMDB_CUBE_ID` | `memos` | Memory cube identifier |
 | `INTERNAL_SERVICE_SECRET` | (empty) | Optional auth secret for X-Internal-Service header |
 
 Environment variables take precedence over the config file.
 
 ### Config file location
 
-`~/.config/claude-code-memos/config.env` — simple KEY=VALUE format, created by `setup.sh`. The file is chmod 600 (owner-only access).
+`~/.config/claude-code-memdb/config.env` — simple KEY=VALUE format, created by `setup.sh`. The file is chmod 600 (owner-only access).
 
 ## Prerequisites
 
-- [MemDB](https://github.com/anatolykoptev/MemDB) running and accessible (default: `http://127.0.0.1:8000`)
+- [MemDB](https://github.com/MemDBai/MemDB) running and accessible (default: `http://127.0.0.1:8080`)
 - Node.js 18+ (for `fetch` API)
 
 ## How the hooks work
@@ -81,24 +83,32 @@ Session start → Load config → GET /health → Inject status message
 ### Context Injection (UserPromptSubmit)
 
 ```
-User prompt → Search MemDB (top 12) → LLM rerank → Inject top 6 as context
+User prompt → Search MemDB (top 5) → Inject as context
 ```
 
 - Skips short/casual prompts (hi, ok, yes, etc.)
-- Over-fetches 12 memories, then LLM filters to most relevant
+- Fetches 5 memories with MMR dedup and 0.85 relativity threshold
 - Injected as `<user_memory_context>` block in additionalContext
-- 15-second timeout, fails silently on error
+- 30-second timeout, fails silently on error
 
 ### Compaction Flush (PreCompact)
 
 ```
-Transcript → Extract last 50 messages → LLM summarize → Save entries to MemDB
+Transcript → Extract last 50 messages → Send to MemDB for extraction
 ```
 
 - Reads conversation transcript (JSONL format)
-- Extracts facts, decisions, preferences, and action items
-- Saves up to 15 entries tagged `compaction_summary`
-- 120-second timeout, never blocks compaction
+- Server-side extraction of facts, decisions, preferences
+- 30-second timeout, never blocks compaction
+
+### Stop Save (Stop)
+
+```
+Transcript delta → Heuristic gate → Send to MemDB
+```
+
+- Only saves when transcript contains signal words (decisions, fixes, etc.)
+- Fire-and-forget, never blocks the session
 
 ## License
 

@@ -1,7 +1,7 @@
 ---
 name: memory-context
 description: "Use when the user asks about their memories, past decisions, stored context, or when conversation context seems incomplete and MemDB memory could help fill gaps"
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Memory Context
@@ -12,10 +12,9 @@ This skill helps you work with MemDB memory that is automatically injected into 
 
 ## How Memory Injection Works
 
-Before each user prompt is processed, the `memos-inject` hook:
+Before each user prompt is processed, the `memdb-inject` hook:
 1. Searches MemDB for memories relevant to the user's prompt
-2. Reranks results via LLM to filter noise (keeps only truly relevant memories)
-3. Injects relevant memories as `additionalContext` in a `<user_memory_context>` block
+2. Injects relevant memories as `additionalContext` in a `<user_memory_context>` block
 
 You may see blocks like:
 ```
@@ -40,17 +39,17 @@ If the user asks about something that should be in memory but isn't in the injec
 
 ## Conversation Persistence
 
-Before context compaction, the `memos-precompact` hook automatically:
+Before context compaction, the `memdb-precompact` hook automatically:
 1. Reads the conversation transcript
-2. Extracts key facts, decisions, and context via LLM summarization
-3. Saves entries to MemDB tagged as `compaction_summary`
+2. Sends messages to MemDB for extraction and structuring
+3. Saves entries to MemDB for future retrieval
 
 This means important information from conversations is preserved across sessions without manual action.
 
 ## Environment Requirements
 
-The hooks require MemDB running and accessible. Configuration via environment variables:
-- `MEMOS_API_URL` — MemDB API endpoint (default: `http://127.0.0.1:8000`)
-- `MEMOS_USER_ID` — User identifier (default: `default`)
-- `MEMOS_CUBE_ID` — Memory cube identifier (default: `memos`)
+The hooks require MemDB running and accessible. Configuration via `~/.config/claude-code-memdb/config.env`:
+- `MEMDB_API_URL` — MemDB API endpoint (default: `http://127.0.0.1:8080`)
+- `MEMDB_USER_ID` — User identifier (default: `memos`)
+- `MEMDB_CUBE_ID` — Memory cube identifier (default: `memos`)
 - `INTERNAL_SERVICE_SECRET` — Optional auth secret

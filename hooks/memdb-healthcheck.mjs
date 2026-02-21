@@ -16,7 +16,7 @@ const USER = getUserId();
 const CUBE = getCubeId();
 
 try {
-  const res = await fetch(`${API}/product/scheduler/allstatus`, {
+  const res = await fetch(`${API}/health`, {
     signal: AbortSignal.timeout(3000),
   });
 

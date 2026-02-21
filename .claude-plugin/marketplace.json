@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "memos-local",
+  "name": "memdb-local",
   "description": "Local marketplace for MemDB memory plugin",
   "owner": {
     "name": "Koptev Anatoly",
@@ -8,16 +8,16 @@
   },
   "plugins": [
     {
-      "name": "memos-memory",
+      "name": "memdb-memory",
       "description": "MemDB memory integration for Claude Code — automatic context injection and conversation persistence",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "Koptev Anatoly",
         "email": "me@koptev.me"
       },
       "source": {
         "source": "url",
-        "url": "https://github.com/anatolykoptev/claude-code-memos-plugin.git"
+        "url": "https://github.com/anatolykoptev/claude-code-memdb-plugin.git"
       },
       "category": "productivity"
     }

@@ -14,18 +14,19 @@ Search the MemDB memory system for relevant stored information.
 2. Run the following curl command to search MemDB:
 
 ```bash
-curl -s -X POST "${MEMOS_API_URL:-http://127.0.0.1:8000}/product/search" \
+curl -s -X POST "${MEMDB_API_URL:-http://127.0.0.1:8080}/product/search" \
   -H "Content-Type: application/json" \
   -H "X-Internal-Service: ${INTERNAL_SERVICE_SECRET}" \
   -d '{
     "query": "'"$ARGUMENTS"'",
-    "user_id": "'"${MEMOS_USER_ID:-default}"'",
-    "mem_cube_id": "'"${MEMOS_CUBE_ID:-memos}"'",
-    "top_k": 10
+    "user_id": "'"${MEMDB_USER_ID:-memos}"'",
+    "readable_cube_ids": ["'"${MEMDB_CUBE_ID:-memos}"'"],
+    "top_k": 10,
+    "relativity": 0.85
   }'
 ```
 
-3. Parse the JSON response. Memories are at `data.data.text_mem[].memories[]`.
+3. Parse the JSON response. Memories are at `data.text_mem[].memories[]`.
 4. Display results as a formatted list showing:
    - The memory content (`.memory` or `.content` or `.memory_content` field)
    - Any tags or metadata if present

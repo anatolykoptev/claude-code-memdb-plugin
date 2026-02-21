@@ -1,18 +1,21 @@
 /**
- * Shared config loader for memos-memory plugin.
+ * Shared config loader for memdb-memory plugin.
  *
- * Reads ~/.config/claude-code-memos/config.env (KEY=VALUE lines),
+ * Reads ~/.config/claude-code-memdb/config.env (KEY=VALUE lines),
+ * falls back to legacy ~/.config/claude-code-memos/config.env,
  * sets process.env only if not already set (env vars take precedence).
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
-const CONFIG_PATH = join(homedir(), ".config", "claude-code-memos", "config.env");
+const CONFIG_PATH = join(homedir(), ".config", "claude-code-memdb", "config.env");
+const LEGACY_CONFIG_PATH = join(homedir(), ".config", "claude-code-memos", "config.env");
 
 export function loadConfig() {
+  const path = existsSync(CONFIG_PATH) ? CONFIG_PATH : LEGACY_CONFIG_PATH;
   try {
-    const text = readFileSync(CONFIG_PATH, "utf-8");
+    const text = readFileSync(path, "utf-8");
     for (const line of text.split("\n")) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith("#")) continue;
@@ -28,13 +31,17 @@ export function loadConfig() {
 }
 
 export function getApiUrl() {
-  return process.env.MEMOS_API_URL || "http://127.0.0.1:8080";
+  return process.env.MEMDB_API_URL || process.env.MEMOS_API_URL || "http://127.0.0.1:8080";
 }
 
 export function getUserId() {
-  return process.env.MEMOS_USER_ID || "default";
+  return process.env.MEMDB_USER_ID || process.env.MEMOS_USER_ID || "memos";
 }
 
 export function getCubeId() {
-  return process.env.MEMOS_CUBE_ID || "memos";
+  return process.env.MEMDB_CUBE_ID || process.env.MEMOS_CUBE_ID || "memos";
+}
+
+export function getSecret() {
+  return process.env.INTERNAL_SERVICE_SECRET || "";
 }
