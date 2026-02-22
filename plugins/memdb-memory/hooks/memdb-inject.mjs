@@ -21,7 +21,7 @@ const INJECT_K = 5;
 const MAX_CHARS = 500;
 
 // Skip patterns: casual prompts not worth searching
-const SKIP_RE = /^(hi|hello|hey|ok|yes|no|thanks|спасибо|привет|ок|да|нет|ладно|понял|хорошо|\/\w+)\s*[.!?]*$/i;
+const SKIP_RE = /^(hi|hello|hey|ok|yes|no|thanks|спасибо|привет|ок|да|нет|ладно|понял|хорошо|перезагрузил|перезагрузи|готово|сделал|сделано|проверь|проверил|жди|подожди|продолжай|продолжи|дальше|всё|стоп|отлично|класс|круто|погнали|делай|запусти|покажи|давай|закоммить|запушь|пушни|применяй|обнови|удали|открой|закрой|\/\w+)\s*[.!?]*$/i;
 
 function makeHeaders() {
   const h = { "Content-Type": "application/json" };
@@ -75,7 +75,7 @@ async function main() {
   const prompt = event.prompt || "";
 
   // Skip short or casual prompts
-  if (prompt.length < 5 || SKIP_RE.test(prompt.trim())) {
+  if (prompt.length < 20 || SKIP_RE.test(prompt.trim())) {
     process.exit(0);
   }
 
@@ -89,7 +89,10 @@ async function main() {
         readable_cube_ids: [CUBE_ID],
         top_k: FETCH_K,
         dedup: "mmr",
-        relativity: 0.85,
+        relativity: 0.92,
+        num_stages: 2,
+        include_skill_memory: false,
+        include_preference: false,
         internet_search: false,
       }),
       signal: AbortSignal.timeout(30000),
@@ -101,6 +104,12 @@ async function main() {
 
     const rawCubes = data?.data?.text_mem || data?.text_mem || [];
     let memories = rawCubes.flatMap((cube) => cube.memories || []);
+
+    // Post-search quality filter: drop borderline memories
+    memories = memories.filter((m) => {
+      const rel = m.metadata?.relativity;
+      return rel == null || rel >= 0.88;
+    });
 
     if (!memories.length) process.exit(0);
 
