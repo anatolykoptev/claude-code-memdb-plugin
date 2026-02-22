@@ -89,7 +89,7 @@ async function main() {
         readable_cube_ids: [CUBE_ID],
         top_k: FETCH_K,
         dedup: "mmr",
-        relativity: 0.92,
+        relativity: 0.93,
         num_stages: 2,
         include_skill_memory: false,
         include_preference: false,
