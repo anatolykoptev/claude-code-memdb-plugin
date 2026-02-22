@@ -14,6 +14,7 @@ Search the MemDB memory system for relevant stored information.
 2. Run the following curl command to search MemDB:
 
 ```bash
+source ~/.config/claude-code-memdb/config.env 2>/dev/null || source ~/.config/claude-code-memos/config.env 2>/dev/null
 curl -s -X POST "${MEMDB_API_URL:-http://127.0.0.1:8080}/product/search" \
   -H "Content-Type: application/json" \
   -H "X-Internal-Service: ${INTERNAL_SERVICE_SECRET}" \
