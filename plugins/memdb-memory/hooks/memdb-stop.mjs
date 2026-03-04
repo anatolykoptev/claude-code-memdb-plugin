@@ -12,6 +12,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { loadConfig, getApiUrl, getUserId, getCubeId, getSecret } from "./lib/config.mjs";
+import { appendBuffer } from "./lib/context-buffer.mjs";
 
 loadConfig();
 
@@ -133,6 +134,12 @@ async function main() {
 
   const sessionId = event.session_id;
   const transcriptPath = event.transcript_path;
+  const lastMessage = event.last_assistant_message;
+
+  // Write assistant response to context buffer for inject hook's context-aware search
+  if (sessionId && lastMessage && lastMessage.length > 10) {
+    appendBuffer(sessionId, "assistant", lastMessage);
+  }
 
   if (!sessionId || !transcriptPath || !existsSync(transcriptPath)) {
     console.log(JSON.stringify({ continue: true }));

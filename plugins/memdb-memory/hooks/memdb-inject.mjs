@@ -9,6 +9,7 @@
  * Stdout: { hookSpecificOutput: { hookEventName, additionalContext } }
  */
 import { loadConfig, getApiUrl, getUserId, getCubeId, getSecret } from "./lib/config.mjs";
+import { readBuffer, appendBuffer, buildContextQuery } from "./lib/context-buffer.mjs";
 
 loadConfig();
 
@@ -73,18 +74,26 @@ async function main() {
     process.exit(0);
   }
   const prompt = event.prompt || "";
+  const sessionId = event.session_id || "default";
 
   // Skip short or casual prompts
   if (prompt.length < 20 || SKIP_RE.test(prompt.trim())) {
     process.exit(0);
   }
 
+  // Write current prompt to context buffer for future queries
+  appendBuffer(sessionId, "user", prompt);
+
   try {
+    // Build context-aware search query from recent conversation
+    const buffer = readBuffer(sessionId, 4);
+    const searchQuery = buildContextQuery(prompt, buffer);
+
     const res = await fetch(`${MEMDB_API}/product/search`, {
       method: "POST",
       headers: makeHeaders(),
       body: JSON.stringify({
-        query: prompt.slice(0, 500),
+        query: searchQuery,
         user_id: USER_ID,
         readable_cube_ids: [CUBE_ID],
         top_k: FETCH_K,

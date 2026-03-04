@@ -1,5 +1,5 @@
 {
-  "description": "MemDB memory hooks — inject relevant memories on prompt, save summaries before compaction",
+  "description": "MemDB memory hooks — only SessionStart (healthcheck) in plugin. Stdin-dependent hooks in ~/.claude/settings.json (plugin stdin bug workaround).",
   "hooks": {
     "SessionStart": [
       {
@@ -8,39 +8,6 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/memdb-healthcheck.mjs",
             "timeout": 5
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/memdb-inject.mjs",
-            "timeout": 35
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/memdb-precompact.mjs",
-            "timeout": 120
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/memdb-stop.mjs",
-            "timeout": 35
           }
         ]
       }
