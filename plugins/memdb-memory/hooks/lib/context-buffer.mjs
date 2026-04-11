@@ -7,6 +7,7 @@
  * appends assistant responses to it.
  */
 import { readFileSync, writeFileSync, appendFileSync } from "node:fs";
+import { redactSensitive } from "./redact.mjs";
 
 const MAX_ENTRIES = 10;
 
@@ -26,7 +27,7 @@ export function readBuffer(sessionId, n = 4) {
 
 export function appendBuffer(sessionId, role, content) {
   const path = bufferPath(sessionId);
-  const line = JSON.stringify({ role, content: content.slice(0, 300) }) + "\n";
+  const line = JSON.stringify({ role, content: redactSensitive(content.slice(0, 300)) }) + "\n";
   try {
     appendFileSync(path, line);
     // Trim to MAX_ENTRIES

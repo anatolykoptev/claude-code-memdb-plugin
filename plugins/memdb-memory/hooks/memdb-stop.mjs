@@ -13,6 +13,7 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 import { loadConfig, getApiUrl, getUserId, getCubeId, getSecret } from "./lib/config.mjs";
 import { appendBuffer } from "./lib/context-buffer.mjs";
+import { redactSensitive } from "./lib/redact.mjs";
 
 loadConfig();
 
@@ -93,7 +94,7 @@ function parseTranscriptDelta(transcriptPath, fromLine) {
             : "";
 
       if ((role === "user" || role === "assistant") && text.length > 10) {
-        messages.push({ role, content: text.slice(0, 2000) });
+        messages.push({ role, content: redactSensitive(text.slice(0, 2000)) });
       }
     } catch { /* skip malformed */ }
   }

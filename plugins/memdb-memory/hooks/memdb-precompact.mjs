@@ -12,6 +12,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { loadConfig, getApiUrl, getUserId, getCubeId, getSecret } from "./lib/config.mjs";
+import { redactSensitive } from "./lib/redact.mjs";
 
 loadConfig();
 
@@ -103,7 +104,7 @@ async function main() {
               ? rawContent.map((b) => b?.text || "").join("")
               : "";
         if ((role === "user" || role === "assistant") && text.length > 10) {
-          messages.push({ role, content: text.slice(0, 2000) });
+          messages.push({ role, content: redactSensitive(text.slice(0, 2000)) });
         }
       } catch { /* skip */ }
     }
