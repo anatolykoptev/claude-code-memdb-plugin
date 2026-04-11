@@ -2,8 +2,9 @@
  * Shared config loader for memdb-memory plugin.
  *
  * Reads ~/.config/claude-code-memdb/config.env (KEY=VALUE lines),
- * falls back to legacy ~/.config/claude-code-memos/config.env,
- * sets process.env only if not already set (env vars take precedence).
+ * falls back to legacy ~/.config/claude-code-memos/config.env.
+ * config.env values ALWAYS override process.env so plugin updates
+ * propagate to long-running Claude sessions on the next hook fire.
  */
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -23,7 +24,9 @@ export function loadConfig() {
       if (eq < 1) continue;
       const key = trimmed.slice(0, eq).trim();
       const val = trimmed.slice(eq + 1).trim();
-      if (!process.env[key]) process.env[key] = val;
+      // config.env wins over inherited process.env so plugin updates
+      // (e.g. Phase 2 MEMDB_PERSON_ID rollout) propagate to live sessions.
+      process.env[key] = val;
     }
   } catch {
     // Config file missing — env vars or defaults will be used
