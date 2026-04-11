@@ -20,7 +20,7 @@ curl -s -X POST "${MEMDB_API_URL:-http://127.0.0.1:8080}/product/search" \
   -H "X-Internal-Service: ${INTERNAL_SERVICE_SECRET}" \
   -d '{
     "query": "'"$ARGUMENTS"'",
-    "user_id": "'"${MEMDB_USER_ID:-memos}"'",
+    "user_id": "'"${MEMDB_PERSON_ID:-${MEMDB_USER_ID:-krolik}}"'",
     "readable_cube_ids": ["'"${MEMDB_CUBE_ID:-memos}"'"],
     "top_k": 10,
     "relativity": 0.85

@@ -30,7 +30,7 @@ curl -s -X POST "${MEMDB_API_URL:-http://127.0.0.1:8080}/product/delete_memory" 
   -H "Content-Type: application/json" \
   -H "X-Internal-Service: ${INTERNAL_SERVICE_SECRET}" \
   -d '{
-    "user_id": "'"${MEMDB_USER_ID:-memos}"'",
+    "user_id": "'"${MEMDB_PERSON_ID:-${MEMDB_USER_ID:-krolik}}"'",
     "memory_ids": ["MEMORY_ID_HERE"]
   }'
 
@@ -39,7 +39,7 @@ curl -s -X POST "${MEMDB_API_URL:-http://127.0.0.1:8080}/product/add" \
   -H "Content-Type: application/json" \
   -H "X-Internal-Service: ${INTERNAL_SERVICE_SECRET}" \
   -d '{
-    "user_id": "'"${MEMDB_USER_ID:-memos}"'",
+    "user_id": "'"${MEMDB_PERSON_ID:-${MEMDB_USER_ID:-krolik}}"'",
     "writable_cube_ids": ["CUBE_ID_HERE"],
     "mode": "fast",
     "messages": [{"role": "user", "content": "NEW_CONTENT_HERE"}]

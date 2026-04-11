@@ -35,7 +35,8 @@ export function getApiUrl() {
 }
 
 export function getUserId() {
-  return process.env.MEMDB_USER_ID || process.env.MEMOS_USER_ID || "memos";
+  // Phase 2: MEMDB_PERSON_ID is the person identity; fall back to legacy MEMDB_USER_ID for old setups
+  return process.env.MEMDB_PERSON_ID || process.env.MEMDB_USER_ID || process.env.MEMOS_USER_ID || "krolik";
 }
 
 export function getCubeId() {
