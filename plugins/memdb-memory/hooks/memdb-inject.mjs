@@ -178,7 +178,7 @@ async function main() {
     for (const m of items) if (m.id) seen.add(m.id);
     writeSeen(sessionId, seen);
 
-    const context = `<user_memory_context>\nInjected by memdb-inject hook.\nRelevant memories from MemDB:\n${textLines.join("\n")}\n</user_memory_context>`;
+    const context = `<user_memory_context>\nInjected by memdb hook.\nRelevant memories from MemDB:\n${textLines.join("\n")}\n</user_memory_context>`;
 
     console.log(JSON.stringify({
       hookSpecificOutput: {
