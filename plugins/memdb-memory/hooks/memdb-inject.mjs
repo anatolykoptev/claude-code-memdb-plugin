@@ -31,10 +31,10 @@ const SECRET = getSecret();
 // New: FETCH_K=5, INJECT_K=2, post-filter >=0.93, context-query only for short prompts,
 // + top-1 hard gate 0.94, + project scope boost, + session dedup.
 const FETCH_K = 5;
-const INJECT_K = 2;
+const INJECT_K = 3;
 const MAX_CHARS = 500;
-const MIN_RELATIVITY = 0.93;   // post-search quality gate (was 0.88)
-const STRONG_RELATIVITY = 0.94; // require at least one memory above this (unless project match)
+const MIN_RELATIVITY = 0.90;   // post-search quality gate (lowered from 0.93 — let vector search do its job)
+const STRONG_RELATIVITY = 0.93; // require at least one memory above this when project scope is active
 const MIN_PROMPT_LEN = 20;     // skip very short prompts (unchanged)
 const SELF_CONTAINED_LEN = 30; // prompts >= this and not deictic skip conversation-context augmentation
 
@@ -102,7 +102,7 @@ async function main() {
         readable_cube_ids: [CUBE_ID],
         top_k: FETCH_K,
         dedup: "mmr",
-        relativity: 0.93,
+        relativity: 0.85,
         num_stages: 2,
         include_skill_memory: false,
         include_preference: false,
@@ -118,7 +118,16 @@ async function main() {
     const rawCubes = data?.data?.text_mem || data?.text_mem || [];
     let memories = rawCubes.flatMap((cube) => cube.memories || []);
 
-    // Post-search quality gate: drop borderline memories (raised 0.88 → 0.93)
+    // Debug: log raw search results to stderr (visible in hook logs, not in Claude context)
+    if (process.env.MEMDB_DEBUG) {
+      const dbg = memories.map((m) => ({
+        rel: m.metadata?.relativity?.toFixed(3),
+        text: (getMemoryText(m) || "").slice(0, 80),
+      }));
+      process.stderr.write(`[memdb-inject] query="${searchQuery.slice(0, 60)}" scope=${projectScope || "null"} results=${JSON.stringify(dbg)}\n`);
+    }
+
+    // Post-search quality gate: drop low-relevance memories
     memories = memories.filter((m) => {
       const rel = m.metadata?.relativity;
       return rel == null || rel >= MIN_RELATIVITY;
@@ -144,16 +153,13 @@ async function main() {
       memories = [...matches, ...rest];
 
       // If no project matches AND top memory is not strongly relevant, skip entirely.
-      // This is the hard gate that kills the "vague prompt → off-topic noise" case.
       const topRel = memories[0]?.metadata?.relativity ?? 0;
       if (matches.length === 0 && topRel < STRONG_RELATIVITY) {
         process.exit(0);
       }
-    } else {
-      // No project scope available: require at least one strong match to inject anything.
-      const topRel = memories[0]?.metadata?.relativity ?? 0;
-      if (topRel < STRONG_RELATIVITY) process.exit(0);
     }
+    // Without project scope (e.g. running from home dir), trust the vector search
+    // quality — MIN_RELATIVITY filter already applied above, no extra gate needed.
 
     // Format and inject top-K
     const items = memories.slice(0, INJECT_K);
