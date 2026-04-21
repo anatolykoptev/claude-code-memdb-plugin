@@ -24,7 +24,12 @@ export function getProjectScope() {
   );
   if (rootIdx >= 0 && parts[rootIdx + 1]) return parts[rootIdx + 1].toLowerCase();
   const base = basename(cwd).toLowerCase();
-  return base && base !== "krolik" && base !== "home" ? base : null;
+  // Exclude home directories and usernames — they are not project names
+  const ignoreBases = ["krolik", "home", "root", "ubuntu"];
+  if (!base || ignoreBases.includes(base)) return null;
+  // If CWD is a home directory (e.g. /Users/foo, /home/foo), it's not a project
+  if (/^(\/Users\/[^/]+|\/home\/[^/]+|\/root)\/?$/.test(cwd)) return null;
+  return base;
 }
 
 /**
