@@ -158,7 +158,8 @@ async function main() {
     }
 
     // Send to MemDB — server handles extraction, structuring, preference memory
-    fetch(`${MEMDB_API}/product/add`, {
+    // MUST await before writing offset, otherwise data is lost if fetch fails
+    const addRes = await fetch(`${MEMDB_API}/product/add`, {
       method: "POST",
       headers: makeHeaders(),
       body: JSON.stringify({
@@ -167,9 +168,15 @@ async function main() {
         messages: messages.slice(-30),
       }),
       signal: AbortSignal.timeout(30000),
-    }).catch(() => {}); // fire-and-forget
+    });
 
-    writeOffset(sessionId, totalLines);
+    // Only advance offset if MemDB accepted the data
+    if (addRes.ok) {
+      writeOffset(sessionId, totalLines);
+    } else {
+      process.stderr.write(`[memdb-stop] /product/add failed: ${addRes.status}\n`);
+      // Don't write offset — next Stop will retry with accumulated messages
+    }
   } catch {
     // Non-fatal: never block the session
   }
