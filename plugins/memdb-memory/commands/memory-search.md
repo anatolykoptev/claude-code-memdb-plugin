@@ -1,7 +1,10 @@
 ---
 description: "Search MemDB memory for relevant information"
 argument-hint: "<query>"
-allowed-tools: ["Bash"]
+disable-model-invocation: true
+allowed-tools:
+  - Edit(/${CLAUDE_PROJECT_DIR}/.memdb-memory-input.txt)
+  - Bash(node "${CLAUDE_PLUGIN_ROOT}/scripts/memdb-cmd.mjs" search --file "${CLAUDE_PROJECT_DIR}/.memdb-memory-input.txt")
 ---
 
 # Memory Search
@@ -10,38 +13,23 @@ Search the MemDB memory system for relevant stored information.
 
 ## Instructions
 
-1. Take the user's query: `$ARGUMENTS`
-2. Run the following command to search MemDB:
+1. If the user text below is empty, ask what to search for and stop.
+2. Save the text under "User text" below to `${CLAUDE_PROJECT_DIR}/.memdb-memory-input.txt` with the Write tool, character for character: no added quotes, escaping, labels or trailing text. If Write refuses because the file already exists, Read it first and then Write again.
+3. Run exactly this command and nothing else. The script reads the file and deletes it:
 
 ```bash
-source ~/.config/claude-code-memdb/config.env 2>/dev/null || source ~/.config/claude-code-memos/config.env 2>/dev/null
-MEMDB_USER="${MEMDB_PERSON_ID:-${MEMDB_USER_ID:-krolik}}" MEMDB_CUBE="${MEMDB_CUBE_ID:-memos}" \
-MEMDB_URL="${MEMDB_API_URL:-http://127.0.0.1:8080}" MEMDB_SECRET="$INTERNAL_SERVICE_SECRET" \
-node -e '
-const e = process.env;
-const query = require("fs").readFileSync(0, "utf8").replace(/\n$/, "");
-fetch(e.MEMDB_URL + "/product/search", {
-  method: "POST",
-  headers: { "Content-Type": "application/json", "X-Internal-Service": e.MEMDB_SECRET || "" },
-  body: JSON.stringify({
-    query,
-    user_id: e.MEMDB_USER,
-    readable_cube_ids: [e.MEMDB_CUBE],
-    top_k: 10,
-    relativity: 0.85,
-  }),
-}).then((r) => r.text()).then((t) => console.log(t)).catch((err) => { console.error(String(err)); process.exit(1); });
-' <<'MEMDB_END_7f3a9c'
-$ARGUMENTS
-MEMDB_END_7f3a9c
+node "${CLAUDE_PLUGIN_ROOT}/scripts/memdb-cmd.mjs" search --file "${CLAUDE_PROJECT_DIR}/.memdb-memory-input.txt"
 ```
-
-The user's text goes only between the `MEMDB_END_7f3a9c` markers, exactly as typed. The quoted marker keeps the shell from interpreting it, and `node` builds the JSON, so do not copy it anywhere else in the command or into a quoted string.
-
-3. Parse the JSON response. Memories are at `data.text_mem[].memories[]`.
-4. Display results as a formatted list showing:
+4. Parse the JSON response. Memories are at `data.text_mem[].memories[]`.
+5. Display results as a formatted list showing:
    - The memory content (`.memory` or `.content` or `.memory_content` field)
    - Any tags or metadata if present
    - The relevance score if available
-5. If no results found, tell the user.
-6. If the API is unreachable, inform the user that MemDB may not be running on the expected port.
+6. If no results found, tell the user.
+7. If the script reports that MemDB is unreachable, tell the user MemDB may not be running on the expected port.
+
+Never put the user's text, or anything from a MemDB response, into a shell command: the text reaches the script only through the file.
+
+## User text
+
+$ARGUMENTS

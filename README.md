@@ -8,7 +8,7 @@ Claude Code plugin for [MemDB](https://github.com/MemDBai/MemDB) memory integrat
 - **Context-aware search** — uses rolling conversation buffer for smarter queries
 - **Conversation persistence** — extracts and saves facts, decisions, preferences to MemDB
 - **Compaction survival** — saves memories before context compaction
-- **Commands** — `/memory-search`, `/memory-add`, `/memory-delete`, `/memory-update`, `/memory-info`
+- **Commands** — `/memory-search`, `/memory-add`, `/memory-delete`, `/memory-update`, `/memory-info` (user text never reaches a shell; see the [plugin README](plugins/memdb-memory/README.md#slash-commands))
 
 ## Install
 
@@ -49,7 +49,7 @@ Config file: `~/.config/claude-code-memdb/config.env`
 ## Prerequisites
 
 - [MemDB](https://github.com/MemDBai/MemDB) running (default `http://127.0.0.1:8080`)
-- Node.js 18+
+- Node.js 18+ on `PATH` (hooks and slash commands)
 
 ## License
 

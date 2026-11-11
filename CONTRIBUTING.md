@@ -4,10 +4,10 @@ Issues and pull requests are welcome.
 
 ## Build and test
 
-There is no build step and the hooks have no dependencies; Node.js 18 or newer is required. There is no CI. The slash-command blocks have a test (`node --test tests/`, needs bash); check everything else by hand:
+There is no build step and the hooks have no dependencies; Node.js 18 or newer is required. There is no CI. The slash commands and their backend have tests (`node --test tests/`); check everything else by hand:
 
 ```sh
-node --test tests/                                          # /memory-* commands: hostile text must execute nothing
+node --test tests/                                          # /memory-* commands: hostile text must stay data, command files must keep user text off shell lines
 node --check plugins/memdb-memory/hooks/memdb-inject.mjs   # syntax check, repeat per changed file
 bash -n plugins/memdb-memory/setup.sh
 ```
