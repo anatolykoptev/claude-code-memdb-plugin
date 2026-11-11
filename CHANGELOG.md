@@ -5,12 +5,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-### Fixed
+### Security
 
-- The `/memory-add`, `/memory-search`, `/memory-delete` and `/memory-update` commands no longer paste the user's text into a quoted shell string. The text goes through a quoted here-document into `node`, which builds the JSON and makes the request, so quotes, `$(...)` and backticks can no longer run as shell code. Memory IDs are checked to be UUIDs.
+- The `/memory-*` slash commands no longer put user text, or anything a MemDB response contains, on a shell command line. Each command has Claude save the text with the Write tool to `.memdb-memory-input.txt` in the project directory and run one fixed `node scripts/memdb-cmd.mjs <command> --file <path>` line; the script reads and deletes the file, builds the JSON with `JSON.stringify` and calls MemDB with `fetch`. No here-document is involved, so there is no marker line a text could use to end it and run the rest as shell. Each command now allows only that script invocation and edits of that one file (`allowed-tools`), and can be started only by the user (`disable-model-invocation`). `/memory-info` goes through the script too instead of an unrestricted `Bash` grant plus `source` of `config.env`.
 
 ### Changed
 
+- `/memory-update` finds the memory's cube itself from the server and no longer asks the model to transcribe it. It adds the new content first and deletes the old memory only after the add succeeded (HTTP status, `code` and a non-empty `data` are checked); if the delete fails it says the old memory is now a duplicate and names its ID.
+- Memory IDs must be exactly 8-4-4-4-12 hex UUIDs. The old pattern also accepted 32 dashes and unhyphenated strings.
+- The commands need Node.js 18 or newer on `PATH`; they no longer need `curl` or `bash`.
 - Removed operator-specific data from tracked files.
 - Added the Apache-2.0 licence.
 

@@ -26,9 +26,13 @@ The setup script will prompt for your MemDB connection details, test connectivit
 
 4. **`memdb-stop`** (Stop) — After meaningful turns, sends transcript delta to MemDB for incremental memory extraction.
 
-**One command:**
+**Five commands** (see [Slash commands](#slash-commands)):
 
-- `/memory-search <query>` — Manually search MemDB memories with a specific query.
+- `/memory-search <query>` — search MemDB memories.
+- `/memory-add <text>` — store a memory.
+- `/memory-delete <memory_id>` — delete a memory by its UUID.
+- `/memory-update <memory_id> <new content>` — replace a memory's content.
+- `/memory-info` — show the person, cubes and memory count.
 
 **One skill:**
 
@@ -66,7 +70,23 @@ A value in the config file overrides the same variable in the process environmen
 ## Prerequisites
 
 - [MemDB](https://github.com/MemDBai/MemDB) running and accessible (default: `http://127.0.0.1:8080`)
-- Node.js 18+ (for `fetch` API)
+- Node.js 18+ on `PATH` (the `fetch` API for the hooks, and the whole `/memory-*` command backend)
+
+## Slash commands
+
+Text you type after a command is never part of a shell command line. Claude Code substitutes it into the command's prompt, and the prompt tells Claude to:
+
+1. save it, character for character, with the Write tool to `.memdb-memory-input.txt` in the project directory;
+2. run exactly one fixed line, `node "${CLAUDE_PLUGIN_ROOT}/scripts/memdb-cmd.mjs" <command> --file "${CLAUDE_PROJECT_DIR}/.memdb-memory-input.txt"`.
+
+`scripts/memdb-cmd.mjs` reads the file and deletes it, reads the connection settings from the same `config.env` as the hooks, builds the request with `JSON.stringify` and sends it with `fetch`. Quotes, `$(...)`, backticks, newlines and marker lines in the text, or in anything MemDB returns, are plain data.
+
+Each command's `allowed-tools` grants only that one `node` line and `Edit` of that one file, and `disable-model-invocation: true` means Claude cannot start the commands on its own. Some choices follow from how Claude Code works:
+
+- The file lives in the project directory, not in `${CLAUDE_PLUGIN_DATA}`: that directory is under `~/.claude/`, a protected path, so writing to it always prompts and no allow rule can pre-approve it.
+- The grant is an `Edit(...)` rule because Claude Code applies `Edit` rules to the Write tool as well.
+- If a run is interrupted before the script reads the file, delete `.memdb-memory-input.txt`; Claude Code refuses to overwrite a file it has not read.
+- `/memory-update` looks the memory's cube up itself, adds the new content to that cube first and deletes the old memory only if the add succeeded. If the delete fails you keep both; the message names the old ID so you can run `/memory-delete`.
 
 ## How the hooks work
 
