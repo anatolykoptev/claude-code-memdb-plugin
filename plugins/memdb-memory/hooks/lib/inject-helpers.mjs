@@ -12,7 +12,7 @@ export function getMemoryText(m) {
 
 /**
  * Derive a project scope keyword from the current working directory.
- * E.g. /home/krolik/src/oxpulse-chat → "oxpulse-chat".
+ * E.g. /home/user/src/oxpulse-chat → "oxpulse-chat".
  * Returns null if no useful hint.
  */
 export function getProjectScope() {
