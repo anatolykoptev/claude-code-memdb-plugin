@@ -53,11 +53,11 @@ Set these before starting Claude Code:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `MEMDB_API_URL` | `http://127.0.0.1:8080` | MemDB API endpoint |
-| `MEMDB_USER_ID` | `memos` | User identifier |
+| `MEMDB_PERSON_ID` | `krolik` | Person identity (legacy fallback: `MEMDB_USER_ID`) |
 | `MEMDB_CUBE_ID` | `memos` | Memory cube identifier |
 | `INTERNAL_SERVICE_SECRET` | (empty) | Optional auth secret for X-Internal-Service header |
 
-Environment variables take precedence over the config file.
+A value in the config file overrides the same variable in the process environment, so a config change reaches already-running sessions on the next hook.
 
 ### Config file location
 

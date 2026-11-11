@@ -34,14 +34,15 @@ Replace `/path/to/` with the actual plugin directory path.
 
 ## Configuration
 
-Run `bash setup.sh` or set env vars:
+Run `bash plugins/memdb-memory/setup.sh` or set env vars (a `config.env` value overrides the process environment):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `MEMDB_API_URL` | `http://127.0.0.1:8080` | MemDB Go gateway endpoint |
-| `MEMDB_USER_ID` | `memos` | User identifier |
+| `MEMDB_PERSON_ID` | `krolik` | Person identity (legacy fallback: `MEMDB_USER_ID`) |
 | `MEMDB_CUBE_ID` | `memos` | Memory cube identifier |
-| `INTERNAL_SERVICE_SECRET` | — | Auth secret for X-Internal-Service header |
+| `INTERNAL_SERVICE_SECRET` | none | Auth secret for the X-Internal-Service header |
+| `MEMDB_DEBUG` | unset | Enables debug logging in the inject hook |
 
 Config file: `~/.config/claude-code-memdb/config.env`
 
@@ -52,4 +53,4 @@ Config file: `~/.config/claude-code-memdb/config.env`
 
 ## License
 
-MIT
+Apache-2.0, see [LICENSE](LICENSE). More documents: [docs/INDEX.md](docs/INDEX.md).
