@@ -5,6 +5,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- The `/memory-add`, `/memory-search`, `/memory-delete` and `/memory-update` commands no longer paste the user's text into a quoted shell string. The text goes through a quoted here-document into `node`, which builds the JSON and makes the request, so quotes, `$(...)` and backticks can no longer run as shell code. Memory IDs are checked to be UUIDs.
+
 ### Changed
 
 - Removed operator-specific data from tracked files.

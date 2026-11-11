@@ -11,7 +11,7 @@ A Claude Code plugin marketplace holding one plugin, `plugins/memdb-memory`: Nod
 
 ## Gate
 
-No CI, no tests, no package.json. Check a change by running the hook against a real MemDB (`node plugins/memdb-memory/hooks/memdb-inject.mjs` reads the hook payload on stdin) and `bash -n plugins/memdb-memory/setup.sh`.
+No CI, no package.json. `node --test tests/` runs the `commands/*.md` bash blocks against a local HTTP stub and checks that hostile text is never executed. Check hook changes by running the hook against a real MemDB (`node plugins/memdb-memory/hooks/memdb-inject.mjs` reads the hook payload on stdin) and `bash -n plugins/memdb-memory/setup.sh`.
 
 ## Invariants
 
